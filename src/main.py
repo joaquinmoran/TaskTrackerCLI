@@ -1,25 +1,48 @@
-import model.task
+import model.task as Task
 import os
 import json
+
 
 print("TASK TRACKER MENU")
 
 opt = 0
-tasks_list = []
 file = "json/tasks.json"
+task_instance = Task.Task()
+tasks_list = task_instance.get_task_from_json(file)
 
+def obtener_ancho_consola():
+    try:
+        columnas, _ = os.get_terminal_size()
+        return columnas
+    except:
+        return 80 
+
+def centrar_texto(texto):
+    ancho_consola = obtener_ancho_consola()
+    espacios = (ancho_consola - len(texto)) // 2
+    texto_centrado = ' ' * espacios + texto
+    return texto_centrado
+
+def mostrar_menu():
+    menu = [
+        "1- Add task",
+        "2- Update task",
+        "3- Delete task",
+        "4- Mark task in progress",
+        "5- Mark task done",
+        "6- Tasks done",
+        "7- Tasks not done",
+        "8- Tasks in progress",
+        "9- Exit menu"
+    ]
+    print(centrar_texto("=== TASK TRACKER MENU ==="))
+     
+    for opcion in menu:
+        print(centrar_texto(opcion))
 
 while opt != 9 or (opt in [1,2,3,4,5,6,7,8]):
     # User menu
-    print("1- Add task")
-    print("2- Update task")
-    print("3- Delete task")
-    print("4- Mark task in progress")
-    print("5- Mark task done")
-    print("6- Tasks done")
-    print("7- Tasks not done")
-    print("8- Tasks in progress")
-    print("9- Exit menu")
+    mostrar_menu()
     opt = int(input(""))
     #In case input is invalidn
     if(opt not in [1,2,3,4,5,6,7,8,9]):
@@ -28,32 +51,32 @@ while opt != 9 or (opt in [1,2,3,4,5,6,7,8]):
     match opt:
         case 1:
             descr = input("Task description: ")
-            task = model.task.Task
-            task1 = task.add_task(descr)
+            task1 = task_instance.add_task(descr)
             tasks_list.append(task1.to_dict())
             task1.save_in_json(file, tasks_list)
-            #Add task
         case 2:
             task_id = int(input("Task id: "))
             new_descr = input("New task description: ")
-            task = model.task.Task
-            data = task.get_task_from_json(file)
-            print(data)
-    
-
-            print("Updating task")  
+            task_list = task_instance.update_task(tasks_list, task_id, new_descr)
+            task_instance.save_in_json(file, task_list)  
         case 3:
-            print("Deleting task")
+            task_id = int(input("Task id: "))
+            tasks_list = task_instance.delete_task(tasks_list, task_id)
+            task_instance.save_in_json(file, tasks_list)
         case 4:
-            print("Task in progress")
+            task_id = int(input("Task_id: "))
+            tasks_list = task_instance.change_status(tasks_list, task_id, status_code=1)
+            task_instance.save_in_json(file, tasks_list)
         case 5: 
-            print("Task done")
+            task_id = int(input("Task_id: "))
+            tasks_list = task_instance.change_status(tasks_list, task_id, status_code=2)
+            task_instance.save_in_json(file, tasks_list)
         case 6:
-            print("Listin finished task")
+            print("Finished tasks: \n", ', '.join(task_instance.list_tasks(tasks_list, 1)))
         case 7:
-            print("Listing not finished task")
+            print("Tasks todo: \n", ', '.join(task_instance.list_tasks(tasks_list, 2)))
         case 8:
-            print("Listing task in progress")
+             print("In progress tasks: \n", ', '.join(task_instance.list_tasks(tasks_list, 3)))
         case default:
             print("Good bye!")
 
